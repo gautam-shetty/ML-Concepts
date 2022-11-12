@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Hierarchical Data Formats (HDF) / model
+.h5
