@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 # Hierarchical Data Formats (HDF) / model
-.h5
+*.h5
