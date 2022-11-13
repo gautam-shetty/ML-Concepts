@@ -1,29 +1,21 @@
 import os
 import pandas as pd
-import matplotlib.pyplot as plt
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split, KFold, cross_validate
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import confusion_matrix, accuracy_score, classification_report
 
-# Constants
-refIndex_pm25 = 0
-refIndex_traffVol = 1
-raw_dataset_addr = ['assets/NS_PM2.5_Data.csv', 'assets/Traffic_Volumes_Data.csv']
-col_headers = [['Date & time', 'Average'], ['Date', 'COUNTY', 'ADT']]
-pm25_normalization_threshold = 0.3
-level = [0, 1]
-tree_png = 'DecisionTree1.png'
-random_state_constant=50
-test_size_constant = 0.5
-dtree_criteria = 'entropy'
-dtree_max_depth = 2
-dtree_min_samples_leaf = 5
-kfold_split = 10
+import visualization
+import constants as const
 
 # import data from csv dataset
 def import_raw_dataset(ref_Index):
-    dataframe = pd.read_csv(os.path.join(os.path.dirname(__file__),raw_dataset_addr[ref_Index]), usecols=col_headers[ref_Index], thousands=",")
+    dataframe = pd.read_csv(os.path.join
+    (os.path.dirname(__file__), 
+        const.RAW_DATASET_ADDR[ref_Index]), 
+        usecols=const.COL_HEADERS[ref_Index], 
+        thousands=","
+    )
     return dataframe
 
 # format inconsistent date format i.e 12 hr to 24 hr
@@ -36,7 +28,7 @@ def reindex_date_col(df, col, drop_cols):
     return dataframe
 
 def pm25_preprocessing(pm25_dataframe):
-    date_time_col = col_headers[refIndex_pm25][0]
+    date_time_col = const.COL_HEADERS[const.REFINDEX_PM25][0]
 
     pm25_dataframe[date_time_col] = pm25_dataframe[date_time_col].apply(format_date)
     pm25_dataframe = reindex_date_col(pm25_dataframe, date_time_col, date_time_col)
@@ -47,20 +39,26 @@ def pm25_preprocessing(pm25_dataframe):
     # Normalize the data between 0 to 1
     min_max_scaler = preprocessing.MinMaxScaler()
     scaled_avg_vals = min_max_scaler.fit_transform(avg_pm25_dataframe)
-    scaled_pm25_dataframe = pd.DataFrame(scaled_avg_vals, index = avg_pm25_dataframe.index, columns = avg_pm25_dataframe.columns)
+    scaled_pm25_dataframe = pd.DataFrame(scaled_avg_vals, 
+        index = avg_pm25_dataframe.index, 
+        columns = avg_pm25_dataframe.columns
+    )
 
     # To drop rows with null values
     scaled_pm25_dataframe = scaled_pm25_dataframe.dropna()
 
     # Categorize the average data as '0' if < 0.5 or '1' if >= 0.5
-    scaled_pm25_dataframe['Level'] = pd.cut(scaled_pm25_dataframe['Average'], bins = [0.0, pm25_normalization_threshold, 1.0], labels = level)
+    scaled_pm25_dataframe['Level'] = pd.cut(scaled_pm25_dataframe['Average'], 
+        bins = [0.0, const.PM25_NORMALIZATION_THRESHOLD, 1.0], 
+        labels = const.LEVEL
+    )
     scaled_pm25_dataframe.drop('Average', axis=1, inplace=True)
 
     return scaled_pm25_dataframe
 
 def traffVol_preprocessing(traffVol_dataframe):
-    date_col = col_headers[refIndex_traffVol][0]
-    county_col = col_headers[refIndex_traffVol][1]
+    date_col = const.COL_HEADERS[const.REFINDEX_TRAFFVOL][0]
+    county_col = const.COL_HEADERS[const.REFINDEX_TRAFFVOL][1]
 
     ## To filter out records for Halifax region only
     traffVol_dataframe = traffVol_dataframe[traffVol_dataframe[county_col] == "HFX"]
@@ -80,11 +78,6 @@ def merge_dataframe(df1, df2):
     merged_dataframe = merged_dataframe.dropna()
     return merged_dataframe
 
-def plot_dataframe(dataframe, plot_kind):
-    dataframe.plot(x = dataframe.columns[0], y=dataframe.columns[1], kind = plot_kind)
-    plt.show()
-
-
 # Splitting train and test data 50/50
 def split_data(dataframe):
     global inputdata_features, inputdata_targetvector
@@ -94,8 +87,8 @@ def split_data(dataframe):
     return train_test_split(
         inputdata_features, 
         inputdata_targetvector, 
-        test_size=test_size_constant, 
-        random_state=random_state_constant
+        test_size=const.TEST_SIZE, 
+        random_state=const.RANDOM_STATE
     )
 
 def train_data(DecisionTreeClassifier_Criteria, X_train, y_train):
@@ -104,7 +97,7 @@ def train_data(DecisionTreeClassifier_Criteria, X_train, y_train):
          max_depth=10, 
          min_samples_split = 3,
          min_samples_leaf=3, 
-         random_state=random_state_constant
+         random_state=const.RANDOM_STATE
     )
     print("Training Data...")
     tree_entropy = tree_entropy.fit(X_train, y_train)
@@ -147,26 +140,25 @@ def cv_visualization(model, X, y, kf):
 ## Main 
 ##
 def main():
-    pm25_dataframe = import_raw_dataset(refIndex_pm25)
+    pm25_dataframe = import_raw_dataset(const.REFINDEX_PM25)
     pm25_dataframe = pm25_preprocessing(pm25_dataframe)
 
-    traffVol_dataframe = import_raw_dataset(refIndex_traffVol)
+    traffVol_dataframe = import_raw_dataset(const.REFINDEX_TRAFFVOL)
     traffVol_dataframe = traffVol_preprocessing(traffVol_dataframe)
 
     ready_dataframe = merge_dataframe(pm25_dataframe, traffVol_dataframe)
 
-    plot_dataframe(ready_dataframe, 'scatter')
+    visualization.dataframe_visualization(ready_dataframe, 'scatter')
 
     X_train, X_test, y_train, y_test = split_data(ready_dataframe)
 
-    entropy_result = train_data(dtree_criteria, X_train, y_train)
+    entropy_result = train_data(const.DTREE_CRITERIA, X_train, y_train)
     
     # # Report and Result
     entropy_y_pred = prediction(X_test, entropy_result)
     accuracy(y_test, entropy_y_pred)
 
-
-    kf = KFold(n_splits=kfold_split, random_state=random_state_constant, shuffle=True)
+    kf = KFold(n_splits=const.KFOLD_SPLIT, random_state=const.RANDOM_STATE, shuffle=True)
     cv_result = cross_validation(entropy_result, inputdata_features, inputdata_targetvector, kf)
     print("Accuracy:", cv_result['test_score'].mean()*100)
     print("Standard Deviation:", cv_result['test_score'].std()*100)

@@ -1,0 +1,13 @@
+REFINDEX_PM25 = 0
+REFINDEX_TRAFFVOL = 1
+RAW_DATASET_ADDR = ['assets/NS_PM2.5_Data.csv', 'assets/Traffic_Volumes_Data.csv']
+COL_HEADERS = [['Date & time', 'Average'], ['Date', 'COUNTY', 'ADT']]
+PM25_NORMALIZATION_THRESHOLD = 0.3
+LEVEL = [0, 1]
+TREE_PNG = 'DecisionTree1.png'
+RANDOM_STATE=50
+TEST_SIZE = 0.5
+DTREE_CRITERIA = 'entropy'
+DTREE_MAX_DEPTH = 2
+DTREE_MIN_SAMPLES_LEAF = 5
+KFOLD_SPLIT = 10
