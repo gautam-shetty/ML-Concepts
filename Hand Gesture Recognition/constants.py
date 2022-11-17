@@ -1,5 +1,9 @@
 TRAIN_DATASET_PATH = 'assets/sign_mnist_train.csv'
 TEST_DATASET_PATH = 'assets/sign_mnist_test.csv'
-EPOCH = 25
-BATCH_SIZE = 200
-CNN_MODEL_NAME = 'model.h5'
+EPOCH = 12
+BATCH_SIZE = 100
+CNN_MODEL_NAMES = ['model_A.h5', 'model_B.h5', 'model_C.h5']
+DROPOUT_RATE = 0.2
+OPTIMIZERS = ['Adam', 'SGD', 'RMSprop', 'Adagrad']
+LEARNING_RATE = 0.005
+EPSILON = 0.1
