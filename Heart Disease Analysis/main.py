@@ -15,15 +15,7 @@ from sklearn.tree import DecisionTreeClassifier
 from mlxtend.evaluate import paired_ttest_kfold_cv
 import seaborn as sns
 
-# Constants
-raw_dataset_addr = 'assets/heart.csv'
-cnt_col_headers = ['age','trestbps','chol','thalach','oldpeak']
-ctg_col_headers = ['sex', 'cp', 'fbs', 'restecg', 'exang', 'slope', 'ca', 'thal']
-test_size_constant = 0.5
-random_state_constant=50
-cluster_range = [2, 3, 4, 5, 6]
-cluster_avg_silhoutter_score = []
-
+import constants as const
 
 # import data from csv dataset
 def import_raw_dataset(raw_dataset_addr):
@@ -72,15 +64,15 @@ def descriptive_analysis(dataframe):
 
 def preprocessing_df(dataframe):
     # Converting categorical variable into dummy/indicator variables for proper PCA
-    new_dataframe = pd.get_dummies(dataframe, columns = ctg_col_headers)
+    new_dataframe = pd.get_dummies(dataframe, columns = const.CTG_COL_HEADERS)
     minMaxScaler = preprocessing.MinMaxScaler()
-    minMaxScaler.fit(new_dataframe[cnt_col_headers])
-    new_dataframe[cnt_col_headers] = minMaxScaler.transform(new_dataframe[cnt_col_headers])
+    minMaxScaler.fit(new_dataframe[const.CNT_COL_HEADERS])
+    new_dataframe[const.CNT_COL_HEADERS] = minMaxScaler.transform(new_dataframe[const.CNT_COL_HEADERS])
     return new_dataframe
 
 def clustering():
     # Initialize the clusterer with n_clusters value and a random generator
-    for n_clusters in cluster_range:
+    for n_clusters in const.CLUSTER_RANGE:
 
         # Create a subplot with 1 row and 2 columns
         fig, (ax1, ax2) = plt.subplots(1, 2)
@@ -96,14 +88,14 @@ def clustering():
 
         clusterer = KMeans(
             n_clusters=n_clusters, 
-            random_state=random_state_constant
+            random_state=const.RANDOM_STATE
             )
         cluster_labels = clusterer.fit_predict(inputdata_features)
 
         # The silhouette_score gives the average value for all the samples.
         # This gives a perspective into the density and separation of the formed clusters
         silhouette_avg = silhouette_score(inputdata_features, cluster_labels)
-        cluster_avg_silhoutter_score.append(silhouette_avg)
+        const.CLUSTER_AVG_SILHOTTE_SCORE.append(silhouette_avg)
         print(
             "For n_clusters =", n_clusters,
             "The average silhouette_score is :", silhouette_avg,
@@ -174,7 +166,7 @@ def clustering():
                     fontsize=14, fontweight='bold')
 
     plt.show()
-    return cluster_range[cluster_avg_silhoutter_score.index(max(cluster_avg_silhoutter_score))]
+    return const.CLUSTER_RANGE[const.CLUSTER_AVG_SILHOTTE_SCORE.index(max(const.CLUSTER_AVG_SILHOTTE_SCORE))]
 
 # def plot_histogram(dataframe, heading):
 #     for col in dataframe.columns:
@@ -186,7 +178,7 @@ def clustering():
 def clustering_by_no_of_clusters(dataframe, n_clusters):
     clusterer = KMeans(
             n_clusters=n_clusters, 
-            random_state=random_state_constant
+            random_state=const.RANDOM_STATE
         )
     cluster_labels = clusterer.fit_predict(inputdata_features)
     print("Cluster labels: ", cluster_labels)    
@@ -203,8 +195,8 @@ def split_data(dataframe):
     return train_test_split(
         inputdata_features, 
         inputdata_targetvector, 
-        test_size=test_size_constant, 
-        random_state=random_state_constant
+        test_size=const.TEST_SIZE, 
+        random_state=const.RANDOM_STATE
     )
 
 def prediction(X_test, classification_object):
@@ -236,7 +228,7 @@ def cross_validation(model, X, y):
 ## Main 
 ##
 def main():
-    heart_dataframe = import_raw_dataset(raw_dataset_addr)
+    heart_dataframe = import_raw_dataset(const.RAW_DATASET_ADDR)
 
     descriptive_analysis(heart_dataframe)
 
@@ -278,7 +270,7 @@ def main():
     tree_entropy = DecisionTreeClassifier(
         criterion='entropy',
         max_depth=6, 
-        random_state=random_state_constant
+        random_state=const.RANDOM_STATE
     )
     print("Training Data...")
     entropy_result = tree_entropy.fit(X_train, y_train)
